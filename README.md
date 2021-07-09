@@ -1,1 +1,9 @@
-This is a starter template for [Learn Next.js](https://nextjs.org/learn).
+# Which License
+
+A tool to determine the name of a license and link to associated documentation.
+
+
+## Building
+
+    ./dev.sh
+
