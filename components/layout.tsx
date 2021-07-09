@@ -3,7 +3,7 @@ import styles from './layout.module.css'
 import utilStyles from '../styles/utils.module.css'
 import Link from 'next/link'
 
-const name = 'AlexSci.com'
+const name = 'Which Software License?'
 export const siteTitle = 'Which License'
 
 export default function Layout({
