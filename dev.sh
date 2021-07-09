@@ -2,6 +2,7 @@
 
 echo ""
 echo "Development: npm run dev"
+echo "Development: npm run build"
 echo ""
 
 docker run \

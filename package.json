@@ -4,8 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
-    "start": "next start"
+    "build": "next build && next export"
   },
   "dependencies": {
     "date-fns": "^2.11.1",
@@ -14,7 +13,8 @@
     "react": "16.13.1",
     "react-dom": "16.13.1",
     "remark": "^12.0.0",
-    "remark-html": "^12.0.0"
+    "remark-html": "^12.0.0",
+    "fastest-levenshtein": "^1.0.12"
   },
   "devDependencies": {
     "@types/node": "^13.11.0",
