@@ -1,6 +1,7 @@
 export const license = {
-      "name": "GNU General Public License v3",
-      "text": `                    GNU GENERAL PUBLIC LICENSE
+  name: 'GNU General Public License v3',
+  ref: 'https://www.tldrlegal.com/l/gpl-3.0',
+  text: `                    GNU GENERAL PUBLIC LICENSE
       Version 3, 29 June 2007
 
   Copyright (C) 2007 Free Software Foundation, Inc. <https://fsf.org/>
@@ -674,5 +675,4 @@ export const license = {
   the library.  If this is what you want to do, use the GNU Lesser General
   Public License instead of this License.  But first, please read
   <https://www.gnu.org/licenses/why-not-lgpl.html>.`,
-      "ref": "https://tldrlegal.com/license/gnu-general-public-license-v3-(gpl-3)",
     }

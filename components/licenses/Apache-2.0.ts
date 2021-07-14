@@ -1,7 +1,7 @@
 export const license = {
-name: 'Apache 2.0',
-ref: 'https://tldrlegal.com/license/apache-license-2.0-(apache-2.0)',
-text: `Apache License, Version 2.0 Apache License Version 2.0, January 2004 http://www.apache.org/licenses/
+  name: 'Apache 2.0',
+  ref: 'https://www.tldrlegal.com/l/apache2',
+  text: `Apache License, Version 2.0 Apache License Version 2.0, January 2004 http://www.apache.org/licenses/
 
 TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION
 

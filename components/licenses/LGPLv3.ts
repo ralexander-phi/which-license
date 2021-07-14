@@ -1,6 +1,6 @@
 export const license = {
   name: 'LGPL v3.0',
-  ref: 'https://tldrlegal.com/license/gnu-lesser-general-public-license-v3-(lgpl-3)',
+  ref: 'https://www.tldrlegal.com/l/lgpl-3.0',
   text: `Version 3, 29 June 2007
 
 Copyright © 2007 Free Software Foundation, Inc. <http://fsf.org/>
