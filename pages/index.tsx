@@ -18,6 +18,8 @@ export default function Home({
         <title>{siteTitle}</title>
       </Head>
       
+      <a href="https://github.com/ralexander-phi/which-license">Fork me on GitHub</a>
+
       <section className={utilStyles.headingMd}>
         <DetectLicense />
       </section>
