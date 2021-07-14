@@ -1,18 +1,18 @@
-import { licenseData } from './licenseData'
+import { Licenses } from './licenses/index';
+
 import { distance, closest } from 'fastest-levenshtein';
 import React from 'react';
 
+
 export default function Layout({}: {}) {
     const [text, setText] = React.useState("");
-
     const MIN_CONFIDENCE = 60;
-
-    const scores = licenseData.map(
+    const scores = Licenses.licenses.map(
       x => distance(x.text, text)
     );
     const bestIndex = scores.indexOf(Math.min(...scores));
     const bestScore = scores[bestIndex];
-    const best = licenseData[bestIndex];
+    const best = Licenses.licenses[bestIndex];
     const licenseLength = Math.max(text.length, best.text.length);
     const confidence = Math.floor(((licenseLength - bestScore) / licenseLength) * 100);
     return (
@@ -43,5 +43,5 @@ export default function Layout({}: {}) {
           </>
         }
       </>
-    )
+    );
   }
