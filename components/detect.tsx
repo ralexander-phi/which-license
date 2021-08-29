@@ -1,4 +1,4 @@
-import { Licenses } from './licenses/index';
+const spdxLicenseList = require('spdx-license-list/full');
 
 import { distance, closest } from 'fastest-levenshtein';
 import { diffWords } from 'diff';
@@ -43,15 +43,16 @@ function renderChange(change) {
 export default function Layout({}: {}) {
     const [text, setText] = React.useState("");
     const MIN_CONFIDENCE = 60;
-    const scores = Licenses.licenses.map(
-      x => distance(x.text, text)
+    const licenses = Object.values(spdxLicenseList);
+    const scores = licenses.map(
+      (x) => distance(x.licenseText, text)
     );
     const bestIndex = scores.indexOf(Math.min(...scores));
     const bestScore = scores[bestIndex];
-    const best = Licenses.licenses[bestIndex];
-    const licenseLength = Math.max(text.length, best.text.length);
+    const best = licenses[bestIndex];
+    const licenseLength = Math.max(text.length, best.licenseText.length);
     const confidence = Math.floor(((licenseLength - bestScore) / licenseLength) * 100);
-    const changes = diffWords(best.text, text);
+    const changes = diffWords(best.licenseText, text);
     return (
       <>
         <br />
@@ -91,8 +92,8 @@ export default function Layout({}: {}) {
         { text.length > 0 && confidence < MIN_CONFIDENCE &&
           <>
           <h2>Unable to determine license.</h2>
-          If you figure it out on your own, can you send a pull request here?
-          I'd like to add this license.
+          <p>Unfortunately, I'm not familiar with this license.</p>
+          <p>If you're able to figure it out, can you <a href="https://github.com/ralexander-phi/which-license/issues">submit an issue here</a> to let me add support?</p>
           </>
         }
       </>
