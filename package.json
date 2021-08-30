@@ -9,14 +9,15 @@
   "dependencies": {
     "date-fns": "^2.11.1",
     "diff": "^5.0.0",
-    "fastest-levenshtein": "^1.0.12",
     "gray-matter": "^4.0.2",
     "next": "^10.0.0",
     "react": "16.13.1",
     "react-dom": "16.13.1",
     "remark": "^12.0.0",
     "remark-html": "^12.0.0",
-    "spdx-license-list": "^6.4.0"
+    "spdx-license-list": "^6.4.0",
+    "wink-distance": "^2.0.1",
+    "wink-nlp-utils": "^2.0.7"
   },
   "devDependencies": {
     "@types/node": "^13.11.0",

@@ -1,6 +1,7 @@
 const spdxLicenseList = require('spdx-license-list/full');
+const nlp = require( 'wink-nlp-utils' );
+var cosine = require( 'wink-distance' ).bow.cosine;
 
-import { distance, closest } from 'fastest-levenshtein';
 import { diffWords } from 'diff';
 
 function intersperseBreaks(parts) {
@@ -40,12 +41,28 @@ function renderChange(change) {
   return changed;
 }
 
+function createBagOfWords(text) {
+    var normalizedText = nlp.string.removeHTMLTags(String(text));
+    normalizedText = nlp.string.removePunctuations(normalizedText);
+    normalizedText = nlp.string.removeExtraSpaces(normalizedText);
+    var textTokens = nlp.string.tokenize(normalizedText);
+    textTokens = nlp.tokens.removeWords(textTokens);
+    return nlp.tokens.bagOfWords(textTokens);
+}
+
 export default function Layout({}: {}) {
     const [text, setText] = React.useState("");
     const MIN_CONFIDENCE = 60;
     const licenses = Object.values(spdxLicenseList);
+    const textBOW = createBagOfWords(text);
+
     const scores = licenses.map(
-      (x) => distance(x.licenseText, text)
+      (x) => {
+	      console.log('Checking ' + x.name);
+	      var res = cosine(createBagOfWords(x.licenseText), textBOW);
+	      console.log('    : ' + res);
+	      return res;
+      }
     );
     const bestIndex = scores.indexOf(Math.min(...scores));
     const bestScore = scores[bestIndex];
@@ -62,9 +79,8 @@ export default function Layout({}: {}) {
           }}
           onChange={e => {
             setText(e.target.value);
-          }}>
-        {text}
-        </textarea>
+          }}
+	  value={text} />
 
         { text.length == 0 &&
           <p className="help is-info">Paste software license text above to start detection.</p>
