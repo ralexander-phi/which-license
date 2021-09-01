@@ -1,27 +1,17 @@
-const spdxLicenseList = require('spdx-license-list/full');
-const nlp = require( 'wink-nlp-utils' );
-var cosine = require( 'wink-distance' ).bow.cosine;
-
 import React, { Component } from 'react';
 import { diffWords } from 'diff';
-
-function intersperseBreaks(parts) {
-  let changed = parts.map(a => [a, (<br />)]).flat();
-  changed.pop();
-  return changed;
-}
 
 function renderChange(change) {
   let style;
   if (change['added']) {
     style = {
       'color': '#090',
-      'background-color': '#dfd',
+      'backgroundColor': '#dfd',
     };
   } else if (change['removed']) {
     style = {
       'color': '#900',
-      'background-color': '#fdd',
+      'backgroundColor': '#fdd',
     };
   } else {
     style = {
@@ -42,97 +32,65 @@ function renderChange(change) {
   return changed;
 }
 
-function createBagOfWords(text) {
-  var normalizedText = nlp.string.removeHTMLTags(String(text));
-  normalizedText = nlp.string.removePunctuations(normalizedText);
-  normalizedText = nlp.string.removeExtraSpaces(normalizedText);
-  var textTokens = nlp.string.tokenize(normalizedText);
-  textTokens = nlp.tokens.removeWords(textTokens);
-  return nlp.tokens.bagOfWords(textTokens);
-}
-
-
-
 export default class Example extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      text: '',
+      bestLicenseText: ''
+    };
+  }
 
   componentDidMount() {
-    this.worker = new Worker(new URL('../example.worker.js', import.meta.url));
-    this.worker.postMessage('from Host');
-    this.worker.addEventListener('message', this.onWorkerMessage);
+    this.worker = new Worker(new URL('../example.worker.tsx', import.meta.url));
+    this.worker.addEventListener('message', (e) => {
+      console.log("Predict: " + e.data.name);
+      this.setState({ bestLicenseText: e.data.licenseText });
+    });
   }
 
   componentWillUnmount() {
     this.worker.terminate();
   }
 
-  onWorkerMessage = (event) => console.log('Host received:', event.data);
-
-  /*
-  const [text, setText] = React.useState("");
-  const MIN_CONFIDENCE = 60;
-  const licenses = Object.values(spdxLicenseList);
-  const textBOW = createBagOfWords(text);
-
-  const scores = licenses.map(
-    (x) => {
-      console.log('Checking ' + x.name);
-      var res = cosine(createBagOfWords(x.licenseText), textBOW);
-      console.log('    : ' + res);
-      return res;
-    }
-  );
-  const bestIndex = scores.indexOf(Math.min(...scores));
-  const bestScore = scores[bestIndex];
-  const best = licenses[bestIndex];
-  const licenseLength = Math.max(text.length, best.licenseText.length);
-  const confidence = Math.floor(((licenseLength - bestScore) / licenseLength) * 100);
-  const changes = diffWords(best.licenseText, text);
-  return (
-    <>
-    <br />
-    <textarea
-    style={{
-      width: '100%',
-    }}
-    onChange={e => {
-      setText(e.target.value);
-    }}
-    value={text} />
-
-    { text.length == 0 &&
-      <p className="help is-info">Paste software license text above to start detection.</p>
-    }
-
-    { text.length > 0 && confidence >= MIN_CONFIDENCE &&
-        <>
-        <br />
-        <br />
-        <br />
-        <strong>Likely based on { best.name } license</strong>
-        <br />
-        <a href={ best.ref }>Learn More</a>
-        <br />
-        <br />
-        <br />
-        <br />
-        <hr />
-        <p class="help">Detected changed:</p>
-        <br />
-        { changes.map(change => renderChange(change)) }
-        </>
-    }
-
-    { text.length > 0 && confidence < MIN_CONFIDENCE &&
-        <>
-        <h2>Unable to determine license.</h2>
-        <p>Unfortunately, I'm not familiar with this license.</p>
-        <p>If you're able to figure it out, can you <a href="https://github.com/ralexander-phi/which-license/issues">submit an issue here</a> to let me add support?</p>
-        </>
-    }
-    </>
-  );
-  */
   render() {
-    return <h1>Web Worker Example</h1>
+    const changes = diffWords(this.state.bestLicenseText, this.state.text);
+    return (
+      <>
+      <br />
+      <textarea
+      style={{
+        width: '100%',
+      }}
+      onChange={e => {
+        this.setState({ text: e.target.value });
+      }}
+      value={this.state.text} />
+
+      <button onClick={e => {
+        console.log("Ask to process: " + this.state.text );
+        this.worker.postMessage({ text: this.state.text });
+      }}>Search</button>
+
+      { this.state.text.length == 0 &&
+        <p className="help is-info">Paste software license text above to start detection.</p>
+      }
+
+      <br />
+      <br />
+      <br />
+      <strong>Likely based on XXX license</strong>
+      <br />
+      <a href="">Learn More</a>
+      <br />
+      <br />
+      <br />
+      <br />
+      <hr />
+      <p className="help">Detected changed:</p>
+      <br />
+      { changes.map(change => renderChange(change)) }
+      </>
+    );
   }
 }
