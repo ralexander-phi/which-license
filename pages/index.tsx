@@ -17,12 +17,13 @@ export default function Home({
       <Head>
         <title>{siteTitle}</title>
       </Head>
-      
-      <a href="https://github.com/ralexander-phi/which-license">Fork me on GitHub</a>
 
       <section className={utilStyles.headingMd}>
         <DetectLicense />
       </section>
+
+      <p>Information is provided without warranty.</p>
+      <p>This is not legal advice</p>
     </Layout>
   )
 }

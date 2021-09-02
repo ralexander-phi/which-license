@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import { diffWords } from 'diff';
 
 function renderChange(change) {
   let style;
@@ -37,15 +36,24 @@ export default class Example extends Component {
     super(props);
     this.state = {
       text: '',
-      bestLicenseText: ''
+      score: null,
+      spdx: null,
+      best: null,
+      changes: null,
+      progress: null,
     };
   }
 
   componentDidMount() {
     this.worker = new Worker(new URL('../example.worker.tsx', import.meta.url));
     this.worker.addEventListener('message', (e) => {
-      console.log("Predict: " + e.data.name);
-      this.setState({ bestLicenseText: e.data.licenseText });
+      this.setState({
+        score: e.data.score,
+        spdx: e.data.spdx,
+        best: e.data.best,
+        changes: e.data.changes,
+        progress: e.data.progress,
+      });
     });
   }
 
@@ -54,43 +62,81 @@ export default class Example extends Component {
   }
 
   render() {
-    const changes = diffWords(this.state.bestLicenseText, this.state.text);
-    return (
-      <>
-      <br />
-      <textarea
-      style={{
-        width: '100%',
-      }}
-      onChange={e => {
-        this.setState({ text: e.target.value });
-      }}
-      value={this.state.text} />
+    if (this.state.progress) {
+      return (<meter value={ this.state.progress } />)
+    } else if (this.state.best) {
+      if (this.state.score > 0.5) {
+        return (<p>Unknown license</p>)
+      } else {
+        return (<>
+        <button onClick={(e) => {
+          this.setState({
+            text: '',
+            score: null,
+            spdx: null,
+            best: null,
+            changes: null,
+            progress: null,
+          });
+        }}>Try another</button>
 
-      <button onClick={e => {
-        console.log("Ask to process: " + this.state.text );
-        this.worker.postMessage({ text: this.state.text });
-      }}>Search</button>
+        <p>
+          <strong>Potentially based on { this.state.best.name } license</strong>
+        </p>
 
-      { this.state.text.length == 0 &&
-        <p className="help is-info">Paste software license text above to start detection.</p>
+        <p className="help is-info">
+          {/* See: https://github.com/spdx/license-list-data */}
+          <a href={"https://spdx.org/licenses/" + this.state.spdx + ".html"}>
+            SPDX: { this.state.spdx }
+          </a>
+        </p>
+
+        <p>
+          {/* TODO do they all have URLs? */}
+          {/* TODO TLDR link */}
+          <a href={ this.state.best.url }>Learn More</a>
+        </p>
+
+        <p className="help">
+          Detected changed:
+        </p>
+
+        { this.state.changes.map(change => renderChange(change)) }
+        </>);
       }
+    } else {
+      return (<>
+        <textarea
+        style={{
+          width: '100%',
+        }}
+        onChange={e => {
+          this.setState({ 
+            score: null,
+            spdx: null,
+            text: e.target.value,
+            best: null,
+            progress: null,
+          });
+        }}
+        value={this.state.text} />
 
-      <br />
-      <br />
-      <br />
-      <strong>Likely based on XXX license</strong>
-      <br />
-      <a href="">Learn More</a>
-      <br />
-      <br />
-      <br />
-      <br />
-      <hr />
-      <p className="help">Detected changed:</p>
-      <br />
-      { changes.map(change => renderChange(change)) }
-      </>
-    );
+        <button onClick={e => {
+            this.setState({
+              score: null,
+              spdx: null,
+              best: null,
+              changes: null,
+              progress: null,
+            });
+            // TODO button double click?
+            this.worker.postMessage({ text: this.state.text });
+          }}>Search</button>
+
+        <p className="help is-info">
+          Paste software license text above to start detection.
+        </p>
+        </>);
+    }
   }
 }

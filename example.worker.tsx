@@ -1,8 +1,9 @@
 const spdxLicenseList = require('spdx-license-list/full');
 const nlp = require( 'wink-nlp-utils' );
 var cosine = require( 'wink-distance' ).bow.cosine;
+import { diffWords } from 'diff';
 
-const licenses = Object.values(spdxLicenseList);
+const licenses = Object.keys(spdxLicenseList);
 const MIN_CONFIDENCE = 60;
 
 function createBagOfWords(text) {
@@ -16,17 +17,32 @@ function createBagOfWords(text) {
 
 onmessage = function(event) {
   const text = event.data.text;
-  console.log("Processing: " + text);
   const textBOW = createBagOfWords(text);
 
-  const scores = licenses.map(
-    (license) => cosine(createBagOfWords(license.licenseText), textBOW)
-  );
+  var bestIndex = -1;
+  var bestScore = 9999999;
+  
+  for (var i = 0; i < licenses.length; i++) {
+    const progress = i / (licenses.length);
+    postMessage({ progress: progress });
+    const licenseSPDX = licenses[i];
+    const licenseData = spdxLicenseList[licenseSPDX];
+    const score = cosine(createBagOfWords(licenseData.licenseText), textBOW)
+    if (score < bestScore) {
+      bestScore = score;
+      bestIndex = i;
+    }
+  }
 
-  const bestIndex = scores.indexOf(Math.min(...scores));
-  const bestScore = scores[bestIndex];
-  const best = licenses[bestIndex];
-
-  postMessage(best);
+  const bestSPDX = licenses[bestIndex];
+  const bestData = spdxLicenseList[bestSPDX];
+  const changes = diffWords(bestData.licenseText, text);
+  postMessage({
+    score: bestScore,
+    spdx: bestSPDX,
+    best: bestData,
+    changes: changes,
+    progress: null,
+  });
 };
 
