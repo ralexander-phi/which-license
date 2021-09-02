@@ -45,7 +45,7 @@ export default class Example extends Component {
   }
 
   componentDidMount() {
-    this.worker = new Worker(new URL('../example.worker.tsx', import.meta.url));
+    this.worker = new Worker(new URL('../worker/detect.worker.tsx', import.meta.url));
     this.worker.addEventListener('message', (e) => {
       this.setState({
         score: e.data.score,
