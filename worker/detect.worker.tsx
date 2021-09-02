@@ -10,8 +10,12 @@ function createBagOfWords(text) {
   var normalizedText = nlp.string.removeHTMLTags(String(text));
   normalizedText = nlp.string.removePunctuations(normalizedText);
   normalizedText = nlp.string.removeExtraSpaces(normalizedText);
-  var textTokens = nlp.string.tokenize(normalizedText);
-  textTokens = nlp.tokens.removeWords(textTokens);
+  normalizedText = normalizedText.toLowerCase();
+
+  // Should work, but hits "too much recurrsion" on Firefox
+  // var textTokens = nlp.tokens.removeWords(textTokens);
+  var textTokens = normalizedText.split(/\s+/);
+
   return nlp.tokens.bagOfWords(textTokens);
 }
 

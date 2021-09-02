@@ -66,6 +66,7 @@ export default class Example extends Component {
       return (<meter value={ this.state.progress } />)
     } else if (this.state.best) {
       if (this.state.score > 0.5) {
+        // TODO needs a back button
         return (<p>Unknown license</p>)
       } else {
         return (<>
