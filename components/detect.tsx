@@ -1,4 +1,6 @@
-import React, { Component } from 'react';
+import { Component } from 'react';
+
+var worker;
 
 function renderChange(change) {
   let style;
@@ -31,39 +33,51 @@ function renderChange(change) {
   return changed;
 }
 
-export default class Example extends Component {
+interface DetectState {
+  text: string
+  workerLoaded: boolean
+  workerRunning: boolean
+  score: number
+  spdx: string
+  best: {
+    name: string
+    url: string
+  }
+  changes: Array<{
+    added: string
+    removed: string
+  }>
+}
+
+export default class Example extends Component<{}, DetectState> {
   constructor(props) {
     super(props);
     this.state = {
       text: '',
-      score: null,
-      spdx: null,
+      workerLoaded: false,
+      workerRunning: false,
+      score: 0,
+      spdx: '',
       best: null,
       changes: null,
-      progress: null,
     };
   }
 
   componentDidMount() {
-    this.worker = new Worker(new URL('../worker/detect.worker.tsx', import.meta.url));
-    this.worker.addEventListener('message', (e) => {
-      this.setState({
-        score: e.data.score,
-        spdx: e.data.spdx,
-        best: e.data.best,
-        changes: e.data.changes,
-        progress: e.data.progress,
-      });
+    worker = new Worker(new URL('../worker/detect.worker.tsx', import.meta.url))
+
+    worker.addEventListener('message', (e) => {
+      this.setState(e.data);
     });
   }
 
   componentWillUnmount() {
-    this.worker.terminate();
+    worker.terminate();
   }
 
   render() {
-    if (this.state.progress) {
-      return (<meter value={ this.state.progress } />)
+    if (this.state.workerRunning) {
+      return (<progress max="1" />)
     } else if (this.state.best) {
       if (this.state.score > 0.5) {
         // TODO needs a back button
@@ -73,11 +87,7 @@ export default class Example extends Component {
         <button onClick={(e) => {
           this.setState({
             text: '',
-            score: null,
-            spdx: null,
             best: null,
-            changes: null,
-            progress: null,
           });
         }}>Try another</button>
 
@@ -113,26 +123,20 @@ export default class Example extends Component {
         }}
         onChange={e => {
           this.setState({ 
-            score: null,
-            spdx: null,
             text: e.target.value,
-            best: null,
-            progress: null,
           });
         }}
         value={this.state.text} />
 
-        <button onClick={e => {
-            this.setState({
-              score: null,
-              spdx: null,
-              best: null,
-              changes: null,
-              progress: null,
-            });
+        <button 
+          disabled={! this.state.workerLoaded}
+          onClick={e => {
             // TODO button double click?
-            this.worker.postMessage({ text: this.state.text });
-          }}>Search</button>
+            worker.postMessage({ text: this.state.text });
+        }}>
+        { this.state.workerLoaded && <>Search</> }
+        { ! this.state.workerLoaded && <>Loading...</> }
+        </button>
 
         <p className="help is-info">
           Paste software license text above to start detection.

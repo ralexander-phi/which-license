@@ -3,8 +3,7 @@ const nlp = require( 'wink-nlp-utils' );
 var cosine = require( 'wink-distance' ).bow.cosine;
 import { diffWords } from 'diff';
 
-const licenses = Object.keys(spdxLicenseList);
-const MIN_CONFIDENCE = 60;
+const licenseCount = Object.keys(spdxLicenseList).length;
 
 function createBagOfWords(text) {
   var normalizedText = nlp.string.removeHTMLTags(String(text));
@@ -12,41 +11,58 @@ function createBagOfWords(text) {
   normalizedText = nlp.string.removeExtraSpaces(normalizedText);
   normalizedText = normalizedText.toLowerCase();
 
-  // Should work, but hits "too much recurrsion" on Firefox
-  // var textTokens = nlp.tokens.removeWords(textTokens);
-  var textTokens = normalizedText.split(/\s+/);
-
+  var textTokens = normalizedText.trim().split(/\s+/);
   return nlp.tokens.bagOfWords(textTokens);
 }
 
+function precomputeBOWs() {
+  var d = {};
+  for (const code in spdxLicenseList) {
+    const data = spdxLicenseList[code];
+    const text = data.licenseText;
+    const bow = createBagOfWords(text);
+    d[code] = {
+      bow: bow,
+    };
+  }
+  return d;
+}
+
+const knownLicenses = precomputeBOWs();
+
 onmessage = function(event) {
+  postMessage({
+    workerRunning: true,
+  });
   const text = event.data.text;
   const textBOW = createBagOfWords(text);
 
-  var bestIndex = -1;
-  var bestScore = 9999999;
+  var bestCode = '';
+  var bestScore = Number.MAX_SAFE_INTEGER;
+  var processed = 0;
   
-  for (var i = 0; i < licenses.length; i++) {
-    const progress = i / (licenses.length);
-    postMessage({ progress: progress });
-    const licenseSPDX = licenses[i];
-    const licenseData = spdxLicenseList[licenseSPDX];
-    const score = cosine(createBagOfWords(licenseData.licenseText), textBOW)
+  for (const code in knownLicenses) {
+    const d = knownLicenses[code];
+    const score = cosine(d.bow, textBOW);
     if (score < bestScore) {
+      bestCode = code;
       bestScore = score;
-      bestIndex = i;
     }
   }
 
-  const bestSPDX = licenses[bestIndex];
-  const bestData = spdxLicenseList[bestSPDX];
-  const changes = diffWords(bestData.licenseText, text);
+  const d = spdxLicenseList[bestCode]
+  const changes = diffWords(d.licenseText, text);
   postMessage({
     score: bestScore,
-    spdx: bestSPDX,
-    best: bestData,
+    spdx: bestCode,
+    best: {
+      name: d.name,
+      url: d.url,
+    },
     changes: changes,
-    progress: null,
+    workerRunning: false,
   });
 };
+
+postMessage({workerLoaded: true})
 
