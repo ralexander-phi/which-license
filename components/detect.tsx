@@ -1,26 +1,18 @@
-const spdxLicenseList = require('spdx-license-list/full');
-const nlp = require( 'wink-nlp-utils' );
-var cosine = require( 'wink-distance' ).bow.cosine;
+import { Component } from 'react';
 
-import { diffWords } from 'diff';
-
-function intersperseBreaks(parts) {
-  let changed = parts.map(a => [a, (<br />)]).flat();
-  changed.pop();
-  return changed;
-}
+var worker;
 
 function renderChange(change) {
   let style;
   if (change['added']) {
     style = {
       'color': '#090',
-      'background-color': '#dfd',
+      'backgroundColor': '#dfd',
     };
   } else if (change['removed']) {
     style = {
       'color': '#900',
-      'background-color': '#fdd',
+      'backgroundColor': '#fdd',
     };
   } else {
     style = {
@@ -30,88 +22,147 @@ function renderChange(change) {
 
   let parts = change.value.replace('\n', '⏎\n').split('\n');
   let changed = parts.map(a => [
-      (
+    (
       <span style={style}>
       {a}
       </span>
-      ),
-      (<br />)
+    ),
+    (<br />)
   ]).flat();
   changed.pop();
   return changed;
 }
 
-function createBagOfWords(text) {
-    var normalizedText = nlp.string.removeHTMLTags(String(text));
-    normalizedText = nlp.string.removePunctuations(normalizedText);
-    normalizedText = nlp.string.removeExtraSpaces(normalizedText);
-    var textTokens = nlp.string.tokenize(normalizedText);
-    textTokens = nlp.tokens.removeWords(textTokens);
-    return nlp.tokens.bagOfWords(textTokens);
+interface DetectState {
+  text: string
+  workerLoaded: boolean
+  workerRunning: boolean
+  score: number
+  spdx: string
+  best: {
+    name: string
+    url: string
+  }
+  changes: Array<{
+    added: string
+    removed: string
+  }>
 }
 
-export default function Layout({}: {}) {
-    const [text, setText] = React.useState("");
-    const MIN_CONFIDENCE = 60;
-    const licenses = Object.values(spdxLicenseList);
-    const textBOW = createBagOfWords(text);
-
-    const scores = licenses.map(
-      (x) => {
-	      console.log('Checking ' + x.name);
-	      var res = cosine(createBagOfWords(x.licenseText), textBOW);
-	      console.log('    : ' + res);
-	      return res;
-      }
-    );
-    const bestIndex = scores.indexOf(Math.min(...scores));
-    const bestScore = scores[bestIndex];
-    const best = licenses[bestIndex];
-    const licenseLength = Math.max(text.length, best.licenseText.length);
-    const confidence = Math.floor(((licenseLength - bestScore) / licenseLength) * 100);
-    const changes = diffWords(best.licenseText, text);
-    return (
-      <>
-        <br />
-        <textarea
-          style={{
-            width: '100%',
-          }}
-          onChange={e => {
-            setText(e.target.value);
-          }}
-	  value={text} />
-
-        { text.length == 0 &&
-          <p className="help is-info">Paste software license text above to start detection.</p>
-        }
-
-        { text.length > 0 && confidence >= MIN_CONFIDENCE &&
-          <>
-          <br />
-          <br />
-          <br />
-          <strong>Likely based on { best.name } license</strong>
-          <br />
-          <a href={ best.ref }>Learn More</a>
-          <br />
-          <br />
-          <br />
-          <br />
-          <hr />
-          <p class="help">Detected changed:</p>
-          <br />
-          { changes.map(change => renderChange(change)) }
-          </>
-        }
-
-        { text.length > 0 && confidence < MIN_CONFIDENCE &&
-          <>
-          <h2>Unable to determine license.</h2>
-          <p>Unfortunately, I'm not familiar with this license.</p>
-          <p>If you're able to figure it out, can you <a href="https://github.com/ralexander-phi/which-license/issues">submit an issue here</a> to let me add support?</p>
-          </>
-        }
-      </>
-    );
+export default class Example extends Component<{}, DetectState> {
+  constructor(props) {
+    super(props);
+    this.state = {
+      text: '',
+      workerLoaded: false,
+      workerRunning: false,
+      score: 0,
+      spdx: '',
+      best: null,
+      changes: null,
+    };
   }
+
+  componentDidMount() {
+    worker = new Worker(new URL('../worker/detect.worker.tsx', import.meta.url))
+
+    worker.addEventListener('message', (e) => {
+      this.setState(e.data);
+    });
+  }
+
+  componentWillUnmount() {
+    worker.terminate();
+  }
+
+  render() {
+    if (this.state.workerRunning) {
+      return (<progress className="progress is-large is-dark m-4" />)
+    } else if (this.state.best) {
+      if (this.state.score > 0.5) {
+        // TODO needs a back button
+        return (<p>Unknown license</p>)
+      } else {
+        return (<>
+          <section className="section">
+
+          <button
+            className="button is-link mb-5"
+            onClick={(e) => {
+              this.setState({
+                text: '',
+                best: null,
+              });
+            }}>
+            <span className="icon mr-1">
+              ⯇
+            </span>
+            Try another
+          </button>
+
+          <div className="notification is-info p-5 pb-6">
+            <div className="container">
+            <h1 className="title pb-4">Potentially based on { this.state.best.name }</h1>
+            </div>
+
+            <p className="help is-info">
+              {/* See: https://github.com/spdx/license-list-data */}
+              <a href={"https://spdx.org/licenses/" + this.state.spdx + ".html"}>
+                SPDX: { this.state.spdx }
+              </a>
+            </p>
+
+            <p>
+              {/* TODO TLDR link */}
+              { this.state.best.url &&
+                  <a href={ this.state.best.url }>Learn More</a>
+              }
+            </p>
+
+            <h2 className="subtitle is-3 pt-5 mb-1">
+              Changes:
+            </h2>
+            <div className="content">
+              <div className="box pb-6 pr-6">
+              { this.state.changes.map(change => renderChange(change)) }
+              </div>
+            </div>
+          </div>
+          </section>
+          </>);
+      }
+    } else {
+      var searchClassExtra = ''
+      if (! this.state.workerLoaded) {
+        searchClassExtra = "is-loading";
+      }
+      return (<>
+        <section className="section">
+
+        <p className="help is-info">
+          Paste a software license below to identify it.
+        </p>
+
+        <textarea
+        style={{
+          width: '100%',
+        }}
+        onChange={e => {
+          this.setState({ 
+            text: e.target.value,
+          });
+        }}
+        value={this.state.text} />
+
+        <button
+          className={ searchClassExtra + " button is-primary is-medium mt-3" }
+          disabled={! this.state.workerLoaded}
+          onClick={e => {
+            // TODO button double click?
+            worker.postMessage({ text: this.state.text });
+        }}>Search</button>
+        </section>
+        </>);
+    }
+  }
+}

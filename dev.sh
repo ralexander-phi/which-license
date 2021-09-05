@@ -11,5 +11,5 @@ docker run \
   --workdir /app \
   --mount type=bind,src=$(pwd),dst=/app \
   -p 127.0.0.1:3000:3000/tcp \
-  node:14.17.3-buster \
+  node:16-buster \
   /bin/bash
