@@ -77,15 +77,47 @@ export default class Example extends Component<{}, DetectState> {
 
   render() {
     if (this.state.workerRunning) {
-      return (<progress className="progress is-large is-dark m-4" />)
+      return (
+        <>
+        <h1 className="subtitle">Searching...</h1>
+        <progress className="progress is-large is-dark m-4" />
+        </>
+      )
     } else if (this.state.best) {
       if (this.state.score > 0.5) {
-        // TODO needs a back button
-        return (<p>Unknown license</p>)
+        return (<>
+          <button
+            className="button is-link mb-5"
+            onClick={(e) => {
+              this.setState({
+                text: '',
+                best: null,
+              });
+            }}>
+            <span className="icon mr-1">
+              ⯇
+            </span>
+            Try another
+          </button>
+
+          <div className="notification is-danger is-light p-5 pb-6">
+            <div className="container">
+            <h1 className="title pb-4">Unable to detect license</h1>
+            <p>
+            We can&apos;t determine which license this is.
+            We checked <a href="https://github.com/spdx/license-list-data">the SPDX license list</a> via <a href="https://www.npmjs.com/package/spdx-license-list">the spdx-license-list package.</a>
+            </p>
+            <p>
+            If you think there&apos;s a bug in the detection, you can create <a href="https://github.com/ralexander-phi/which-license/issues">an issue</a>, I&apos;ll take a look.
+            </p>
+            <p>
+            If this license isn&apos;t part of the SPDX license list, you may be able to <a href="https://github.com/spdx/license-list-XML/blob/master/DOCS/license-inclusion-principles.md">get it added.</a>
+            </p>
+            </div>
+          </div>
+          </>);
       } else {
         return (<>
-          <section className="section">
-
           <button
             className="button is-link mb-5"
             onClick={(e) => {
@@ -128,7 +160,6 @@ export default class Example extends Component<{}, DetectState> {
               </div>
             </div>
           </div>
-          </section>
           </>);
       }
     } else {
@@ -137,8 +168,6 @@ export default class Example extends Component<{}, DetectState> {
         searchClassExtra = "is-loading";
       }
       return (<>
-        <section className="section">
-
         <p className="help is-info">
           Paste a software license below to identify it.
         </p>
@@ -161,7 +190,6 @@ export default class Example extends Component<{}, DetectState> {
             // TODO button double click?
             worker.postMessage({ text: this.state.text });
         }}>Search</button>
-        </section>
         </>);
     }
   }

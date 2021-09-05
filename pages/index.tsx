@@ -21,7 +21,9 @@ export default function Home({
           </div>
         </nav>
 
-        <DetectLicense />
+        <section className="section">
+          <DetectLicense />
+        </section>
 
         <footer className="footer">
           <p>Information is provided without warranty.</p>
