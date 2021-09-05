@@ -132,19 +132,20 @@ export default class Example extends Component<{}, DetectState> {
             Try another
           </button>
 
+          <div className="notification is-warning">
+          <div className="container">
+          <h3 className="subtitle is-4 pb-4">This is our best guess.</h3>
+          Your license text may have meaningful differences.
+          Please review any changes below.
+          </div>
+          </div>
+
           <div className="notification is-info p-5 pb-6">
             <div className="container">
-            <h1 className="title pb-4">Potentially based on { this.state.best.name }</h1>
+            <h2 className="subtitle pb-4 is-2">{ this.state.best.name }</h2>
             </div>
 
-            <p className="help is-info">
-              {/* See: https://github.com/spdx/license-list-data */}
-              <a href={"https://spdx.org/licenses/" + this.state.spdx + ".html"}>
-                SPDX: { this.state.spdx }
-              </a>
-            </p>
-
-            <p>
+            <p className="pt-2 pb-4">
               {/* TODO TLDR link */}
               { this.state.best.url &&
                   <a href={ this.state.best.url }>Learn More</a>
@@ -168,10 +169,6 @@ export default class Example extends Component<{}, DetectState> {
         searchClassExtra = "is-loading";
       }
       return (<>
-        <p className="help is-info">
-          Paste a software license below to identify it.
-        </p>
-
         <textarea
         style={{
           width: '100%',
@@ -182,6 +179,10 @@ export default class Example extends Component<{}, DetectState> {
           });
         }}
         value={this.state.text} />
+
+        <p className="help is-info">
+          Paste a software license to identify it.
+        </p>
 
         <button
           className={ searchClassExtra + " button is-primary is-medium mt-3" }
