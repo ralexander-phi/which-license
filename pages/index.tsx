@@ -1,7 +1,6 @@
-import Head from 'next/head';
-import Layout, { siteTitle } from '../components/layout';
+import 'bulma/css/bulma.css'
+
 import DetectLicense from '../components/detect';
-import utilStyles from '../styles/utils.module.css';
 
 export default function Home({
   allPostsData
@@ -13,17 +12,22 @@ export default function Home({
   }[]
 }) {
   return (
-    <Layout home>
-      <Head>
-        <title>{siteTitle}</title>
-      </Head>
+    <html>
+      <head>Which License?</head>
+      <body>
+        <nav className="navbar is-dark pb-2" role="navigation" aria-label="main navigation">
+          <div className="navbar-brand">
+            <h1 className="title p-4 has-text-light">Which License?</h1>
+          </div>
+        </nav>
 
-      <section className={utilStyles.headingMd}>
         <DetectLicense />
-      </section>
 
-      <p>Information is provided without warranty.</p>
-      <p>This is not legal advice</p>
-    </Layout>
+        <footer className="footer">
+          <p>Information is provided without warranty.</p>
+          <p>This is not legal advice</p>
+        </footer>
+      </body>
+    </html>
   )
 }

@@ -77,46 +77,72 @@ export default class Example extends Component<{}, DetectState> {
 
   render() {
     if (this.state.workerRunning) {
-      return (<progress max="1" />)
+      return (<progress className="progress is-large is-dark m-4" />)
     } else if (this.state.best) {
       if (this.state.score > 0.5) {
         // TODO needs a back button
         return (<p>Unknown license</p>)
       } else {
         return (<>
-        <button onClick={(e) => {
-          this.setState({
-            text: '',
-            best: null,
-          });
-        }}>Try another</button>
+          <section className="section">
 
-        <p>
-          <strong>Potentially based on { this.state.best.name } license</strong>
-        </p>
+          <button
+            className="button is-link mb-5"
+            onClick={(e) => {
+              this.setState({
+                text: '',
+                best: null,
+              });
+            }}>
+            <span className="icon mr-1">
+              ⯇
+            </span>
+            Try another
+          </button>
 
-        <p className="help is-info">
-          {/* See: https://github.com/spdx/license-list-data */}
-          <a href={"https://spdx.org/licenses/" + this.state.spdx + ".html"}>
-            SPDX: { this.state.spdx }
-          </a>
-        </p>
+          <div className="notification is-info p-5 pb-6">
+            <div className="container">
+            <h1 className="title pb-4">Potentially based on { this.state.best.name }</h1>
+            </div>
 
-        <p>
-          {/* TODO do they all have URLs? */}
-          {/* TODO TLDR link */}
-          <a href={ this.state.best.url }>Learn More</a>
-        </p>
+            <p className="help is-info">
+              {/* See: https://github.com/spdx/license-list-data */}
+              <a href={"https://spdx.org/licenses/" + this.state.spdx + ".html"}>
+                SPDX: { this.state.spdx }
+              </a>
+            </p>
 
-        <p className="help">
-          Detected changed:
-        </p>
+            <p>
+              {/* TODO TLDR link */}
+              { this.state.best.url &&
+                  <a href={ this.state.best.url }>Learn More</a>
+              }
+            </p>
 
-        { this.state.changes.map(change => renderChange(change)) }
-        </>);
+            <h2 className="subtitle is-3 pt-5 mb-1">
+              Changes:
+            </h2>
+            <div className="content">
+              <div className="box pb-6 pr-6">
+              { this.state.changes.map(change => renderChange(change)) }
+              </div>
+            </div>
+          </div>
+          </section>
+          </>);
       }
     } else {
+      var searchClassExtra = ''
+      if (! this.state.workerLoaded) {
+        searchClassExtra = "is-loading";
+      }
       return (<>
+        <section className="section">
+
+        <p className="help is-info">
+          Paste a software license below to identify it.
+        </p>
+
         <textarea
         style={{
           width: '100%',
@@ -128,19 +154,14 @@ export default class Example extends Component<{}, DetectState> {
         }}
         value={this.state.text} />
 
-        <button 
+        <button
+          className={ searchClassExtra + " button is-primary is-medium mt-3" }
           disabled={! this.state.workerLoaded}
           onClick={e => {
             // TODO button double click?
             worker.postMessage({ text: this.state.text });
-        }}>
-        { this.state.workerLoaded && <>Search</> }
-        { ! this.state.workerLoaded && <>Loading...</> }
-        </button>
-
-        <p className="help is-info">
-          Paste software license text above to start detection.
-        </p>
+        }}>Search</button>
+        </section>
         </>);
     }
   }

@@ -39,7 +39,6 @@ onmessage = function(event) {
 
   var bestCode = '';
   var bestScore = Number.MAX_SAFE_INTEGER;
-  var processed = 0;
   
   for (const code in knownLicenses) {
     const d = knownLicenses[code];
