@@ -169,6 +169,8 @@ export default class Example extends Component<{}, DetectState> {
         searchClassExtra = "is-loading";
       }
       return (<>
+        <h3 className="subtitle">Identify common software licenses</h3>
+
         <textarea
         style={{
           width: '100%',
@@ -182,6 +184,7 @@ export default class Example extends Component<{}, DetectState> {
 
         <p className="help is-info">
           Paste a software license to identify it.
+          For example, try the text of <a href="https://mit-license.org/">the MIT license</a>.
         </p>
 
         <button
