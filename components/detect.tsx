@@ -180,6 +180,7 @@ export default class Example extends Component<{}, DetectState> {
             text: e.target.value,
           });
         }}
+        rows="10"
         value={this.state.text} />
 
         <p className="help is-info">
