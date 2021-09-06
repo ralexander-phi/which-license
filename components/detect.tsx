@@ -8,11 +8,13 @@ function renderChange(change) {
     style = {
       'color': '#090',
       'backgroundColor': '#dfd',
+      'font-weight': 'bold',
     };
   } else if (change['removed']) {
     style = {
       'color': '#900',
       'backgroundColor': '#fdd',
+      'text-decoration': 'line-through',
     };
   } else {
     style = {
