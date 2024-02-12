@@ -33,6 +33,7 @@ export default function Home({
     <p>This is not legal advice</p>
     <p>Fork me on <a href="https://github.com/ralexander-phi/which-license">GitHub</a></p>
     </footer>
+    <script data-goatcounter="https://alexsci.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
     </>
   )
 }
