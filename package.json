@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "bulma": "^0.9.3",
-    "date-fns": "^2.11.1",
+    "date-fns": "^3.6.0",
     "diff": "^5.0.0",
     "gray-matter": "^4.0.2",
     "next": "^14.1.0",
