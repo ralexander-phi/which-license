@@ -39,6 +39,8 @@ interface DetectState {
   text: string
   workerLoaded: boolean
   workerRunning: boolean
+  progress: number,
+  maxProgress: number,
   score: number
   spdx: string
   best: {
@@ -82,7 +84,7 @@ export default class Example extends Component<{}, DetectState> {
       return (
         <>
         <h1 className="subtitle">Searching...</h1>
-        <progress className="progress is-large is-dark m-4" />
+        <progress className="progress is-large is-dark m-4" value={ this.state.progress } max={ this.state.maxProgress } />
         </>
       )
     } else if (this.state.best) {

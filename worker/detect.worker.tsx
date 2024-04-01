@@ -31,8 +31,11 @@ function precomputeBOWs() {
 const knownLicenses = precomputeBOWs();
 
 onmessage = function(event) {
+  const numLicenses = Object.keys(knownLicenses).length;
   postMessage({
     workerRunning: true,
+    maxProgress: numLicenses*1.2,
+    progress: 0,
   });
   const text = event.data.text;
   const textBOW = createBagOfWords(text);
@@ -40,6 +43,7 @@ onmessage = function(event) {
   var bestCode = '';
   var bestScore = Number.MAX_SAFE_INTEGER;
   
+  var index = 0;
   for (const code in knownLicenses) {
     const d = knownLicenses[code];
     const score = cosine(d.bow, textBOW);
@@ -47,10 +51,20 @@ onmessage = function(event) {
       bestCode = code;
       bestScore = score;
     }
+    index += 1;
+    postMessage({
+      workerRunning: true,
+      maxProgress: numLicenses*1.2,
+      progress: index,
+    });
   }
 
   const d = spdxLicenseList[bestCode]
-  const changes = diffWords(d.licenseText, text);
+
+  var changes = [];
+  if (bestScore <= 0.5) {
+    changes = diffWords(d.licenseText, text);
+  }
   postMessage({
     score: bestScore,
     spdx: bestCode,

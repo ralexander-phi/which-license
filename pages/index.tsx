@@ -28,7 +28,7 @@ export default function Home({
     <DetectLicense />
     </section>
 
-    <footer className="footer">
+    <footer className="footer has-text-centered">
     <p>Information is provided without warranty.</p>
     <p>This is not legal advice</p>
     <p>Fork me on <a href="https://github.com/ralexander-phi/which-license">GitHub</a></p>
