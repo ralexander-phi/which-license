@@ -63,7 +63,7 @@ onmessage = function(event) {
 
   var changes = [];
   if (bestScore <= 0.5) {
-    changes = diffWords(d.licenseText, text);
+    changes = diffWords(d.licenseText, text, {ignoreCase: true});
   }
   postMessage({
     score: bestScore,

@@ -64,6 +64,8 @@ export default class Example extends Component<{}, DetectState> {
       spdx: '',
       best: null,
       changes: null,
+      maxProgress: 1,
+      progress: 0,
     };
   }
 
