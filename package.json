@@ -20,11 +20,11 @@
     "remark": "^15.0.1",
     "remark-html": "^16.0.1",
     "spdx-license-list": "^6.4.0",
-    "wink-distance": "^2.0.1",
-    "wink-nlp-utils": "^2.0.7"
+    "wink-eng-lite-web-model": "^1.8.0",
+    "wink-nlp": "^2.3.0"
   },
   "devDependencies": {
-    "@types/node": "^20.14.9",
+    "@types/node": "^22.0.0",
     "@types/react": "^18.3.3",
     "typescript": "^5.5.2"
   }

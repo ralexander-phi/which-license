@@ -90,7 +90,7 @@ export default class Example extends Component<{}, DetectState> {
         </>
       )
     } else if (this.state.best) {
-      if (this.state.score > 0.5) {
+      if (this.state.score < 0.5) {
         return (<>
           <button
             className="button is-link mb-5"

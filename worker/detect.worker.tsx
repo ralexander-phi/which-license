@@ -1,18 +1,19 @@
 const spdxLicenseList = require('spdx-license-list/full');
-const nlp = require( 'wink-nlp-utils' );
-var cosine = require( 'wink-distance' ).bow.cosine;
+
+const winkNLP = require( 'wink-nlp' );
+const model = require( 'wink-eng-lite-web-model' );
+const nlp = winkNLP( model );
+const its = nlp.its;
+const as = nlp.as;
+const similarity = require('wink-nlp/utilities/similarity.js');
+
 import { diffWords } from 'diff';
 
 const licenseCount = Object.keys(spdxLicenseList).length;
 
-function createBagOfWords(text) {
-  var normalizedText = nlp.string.removeHTMLTags(String(text));
-  normalizedText = nlp.string.removePunctuations(normalizedText);
-  normalizedText = nlp.string.removeExtraSpaces(normalizedText);
-  normalizedText = normalizedText.toLowerCase();
-
-  var textTokens = normalizedText.trim().split(/\s+/);
-  return nlp.tokens.bagOfWords(textTokens);
+function createWordSet(text) {
+  const doc = nlp.readDoc(text);
+  return doc.tokens().out(its.value, as.set);
 }
 
 function precomputeBOWs() {
@@ -20,9 +21,8 @@ function precomputeBOWs() {
   for (const code in spdxLicenseList) {
     const data = spdxLicenseList[code];
     const text = data.licenseText;
-    const bow = createBagOfWords(text);
     d[code] = {
-      bow: bow,
+      set: createWordSet(text),
     };
   }
   return d;
@@ -38,16 +38,16 @@ onmessage = function(event) {
     progress: 0,
   });
   const text = event.data.text;
-  const textBOW = createBagOfWords(text);
+  const textSet = createWordSet(text);
 
   var bestCode = '';
-  var bestScore = Number.MAX_SAFE_INTEGER;
+  var bestScore = -1;
   
   var index = 0;
   for (const code in knownLicenses) {
     const d = knownLicenses[code];
-    const score = cosine(d.bow, textBOW);
-    if (score < bestScore) {
+    const score = similarity.set.tversky(d.set, textSet);
+    if (score > bestScore) {
       bestCode = code;
       bestScore = score;
     }
@@ -59,10 +59,9 @@ onmessage = function(event) {
     });
   }
 
-  const d = spdxLicenseList[bestCode]
-
+  const d = spdxLicenseList[bestCode];
   var changes = [];
-  if (bestScore <= 0.5) {
+  if (bestScore > 0.5) {
     changes = diffWords(d.licenseText, text, {ignoreCase: true});
   }
   postMessage({
