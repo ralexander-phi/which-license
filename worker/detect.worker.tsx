@@ -34,45 +34,60 @@ onmessage = function(event) {
   const numLicenses = Object.keys(knownLicenses).length;
   postMessage({
     workerRunning: true,
-    maxProgress: numLicenses*1.2,
+    maxProgress: numLicenses*2,
     progress: 0,
   });
   const text = event.data.text;
   const textSet = createWordSet(text);
 
-  var bestCode = '';
-  var bestScore = -1;
-  
-  var index = 0;
+  // Score every license
+  var scores = [];
+  var progress = 0;
   for (const code in knownLicenses) {
     const d = knownLicenses[code];
     const score = similarity.set.tversky(d.set, textSet);
-    if (score > bestScore) {
-      bestCode = code;
-      bestScore = score;
-    }
-    index += 1;
+    scores.push({
+      score: score,
+      code: code,
+    })
+    progress += 1;
     postMessage({
       workerRunning: true,
-      maxProgress: numLicenses*1.2,
-      progress: index,
+      progress: progress,
     });
   }
 
-  const d = spdxLicenseList[bestCode];
-  var changes = [];
-  if (bestScore > 0.5) {
-    changes = diffWords(d.licenseText, text, {ignoreCase: true});
+  // Take the ten best guesses (score < 0.5)
+  const MAX_GUESSES = 10;
+  const MIN_SCORE = 0.5;
+  scores.sort((a, b) => b.score - a.score);
+  scores = scores.slice(0, MAX_GUESSES);
+  console.log(scores);
+  scores = scores.filter(s => s.score >= MIN_SCORE);
+  var results = [];
+  for (const i in scores) {
+    const v = scores[i];
+    var d = spdxLicenseList[v.code];
+    var result = {
+      score: v.score,
+      spdx: v.code,
+      best: {
+        name: d.name,
+        url: d.url,
+      },
+      changes: diffWords(d.licenseText, text, {ignoreCase: true}),
+    };
+    results.push(result);
+    progress += (numLicenses/MAX_GUESSES);
+    postMessage({
+      workerRunning: true,
+      progress: progress,
+    });
   }
   postMessage({
-    score: bestScore,
-    spdx: bestCode,
-    best: {
-      name: d.name,
-      url: d.url,
-    },
-    changes: changes,
+    results: results,
     workerRunning: false,
+    licenseTab: 0,
   });
 };
 

@@ -41,6 +41,11 @@ interface DetectState {
   workerRunning: boolean
   progress: number,
   maxProgress: number,
+  results: Array<DetectResult>,
+  licenseTab: number,
+}
+
+interface DetectResult {
   score: number
   spdx: string
   best: {
@@ -60,12 +65,10 @@ export default class Example extends Component<{}, DetectState> {
       text: '',
       workerLoaded: false,
       workerRunning: false,
-      score: 0,
-      spdx: '',
-      best: null,
-      changes: null,
       maxProgress: 1,
       progress: 0,
+      results: null,
+      licenseTab: 0,
     };
   }
 
@@ -89,8 +92,8 @@ export default class Example extends Component<{}, DetectState> {
         <progress className="progress is-large is-dark m-4" value={ this.state.progress } max={ this.state.maxProgress } />
         </>
       )
-    } else if (this.state.best) {
-      if (this.state.score < 0.5) {
+    } else if (this.state.results !== null) {
+      if (this.state.results.length < 1) {
         return (<>
           <button
             className="button is-link mb-5"
@@ -129,7 +132,7 @@ export default class Example extends Component<{}, DetectState> {
             onClick={(e) => {
               this.setState({
                 text: '',
-                best: null,
+                results: null,
               });
             }}>
             <span className="icon mr-1">
@@ -139,22 +142,36 @@ export default class Example extends Component<{}, DetectState> {
           </button>
 
           <div className="notification is-warning">
-          <div className="container">
-          <h3 className="subtitle is-4 pb-4">This is our best guess.</h3>
+          <h3 className="subtitle is-4 pb-4">These are the best matches.</h3>
           Your license text may have meaningful differences.
           Please review any changes below.
           </div>
+
+          <div class="tabs is-boxed">
+            <ul>
+              { this.state.results.map((result, index) => {
+                return (
+                  <li key={index} class={ this.state.licenseTab === index ? "is-active" : "" }>
+                    <a onClick={(e) => {
+                        this.setState({
+                          licenseTab: index,
+                        });
+                      }}>
+                      { result.best.name }
+                    </a>
+                  </li>
+                )})
+              }
+            </ul>
           </div>
 
           <div className="notification is-info p-5 pb-6">
-            <div className="container">
-            <h2 className="subtitle pb-4 is-2">{ this.state.best.name }</h2>
-            </div>
+            <h2 className="subtitle pb-4 is-2">{ this.state.results[this.state.licenseTab].best.name }</h2>
 
             <p className="pt-2 pb-4">
               {/* TODO TLDR link */}
-              { this.state.best.url &&
-                  <a href={ this.state.best.url }>Learn More</a>
+              { this.state.results[this.state.licenseTab].best.url &&
+                  <a href={ this.state.results[this.state.licenseTab].best.url }>Learn More</a>
               }
             </p>
 
@@ -163,7 +180,7 @@ export default class Example extends Component<{}, DetectState> {
             </h2>
             <div className="content">
               <div className="box pb-6 pr-6">
-              { this.state.changes.map(change => renderChange(change)) }
+              { this.state.results[this.state.licenseTab].changes.map(change => renderChange(change)) }
               </div>
             </div>
           </div>
