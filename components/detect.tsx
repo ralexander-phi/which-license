@@ -100,7 +100,7 @@ export default class Example extends Component<{}, DetectState> {
             onClick={(e) => {
               this.setState({
                 text: '',
-                best: null,
+                results: null,
               });
             }}>
             <span className="icon mr-1">
@@ -147,11 +147,11 @@ export default class Example extends Component<{}, DetectState> {
           Please review any changes below.
           </div>
 
-          <div class="tabs is-boxed">
+          <div className="tabs is-boxed">
             <ul>
               { this.state.results.map((result, index) => {
                 return (
-                  <li key={index} class={ this.state.licenseTab === index ? "is-active" : "" }>
+                  <li key={index} className={ this.state.licenseTab === index ? "is-active" : "" }>
                     <a onClick={(e) => {
                         this.setState({
                           licenseTab: index,
